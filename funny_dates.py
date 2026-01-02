@@ -95,15 +95,20 @@ def add_years(base: date, years: int) -> date:
 def milestone_candidates(person: Person) -> Iterable[Milestone]:
     """Udregner en samling af sjove mærkedage ud fra en persons fødselsdato.
 
-    Funktionen laver en række faste mærkedage baseret på måneder, dage, timer
-    og sekunder, samt en kombineret mærkedag (1 år, 1 måned, 1 uge, 1 dag).
+    Funktionen laver en række faste mærkedage baseret på måneder, dage, uger,
+    minutter, timer og sekunder, samt en kombineret mærkedag (1 år, 1 måned,
+    1 uge, 1 dag). Derudover tilføjes en serie af Fibonacci-dage.
     Resultatet er en liste af mærkedage med label og dato.
     """
     base = person.birthday
+    fibonacci_days = [34, 55, 89, 144, 233, 377, 610, 987]
     milestones = [
         ("100 måneder", add_months(base, 100)),
         ("500 måneder", add_months(base, 500)),
         ("1000 måneder", add_months(base, 1000)),
+        ("1200 måneder", add_months(base, 1200)),
+        ("1000 uger", base + timedelta(weeks=1_000)),
+        ("2000 uger", base + timedelta(weeks=2_000)),
         ("10.000 dage", base + timedelta(days=10_000)),
     ]
 
@@ -115,12 +120,24 @@ def milestone_candidates(person: Person) -> Iterable[Milestone]:
     birth_dt = datetime.combine(base, datetime.min.time())
     milestones.extend(
         [
+            ("1.000.000 minutter", (birth_dt + timedelta(minutes=1_000_000)).date()),
+            (
+                "10.000.000 minutter",
+                (birth_dt + timedelta(minutes=10_000_000)).date(),
+            ),
             ("100.000 timer", (birth_dt + timedelta(hours=100_000)).date()),
             ("500.000 timer", (birth_dt + timedelta(hours=500_000)).date()),
             (
                 "1.000.000.000 sekunder",
                 (birth_dt + timedelta(seconds=1_000_000_000)).date(),
             ),
+        ]
+    )
+
+    milestones.extend(
+        [
+            (f"Fibonacci: {days} dage", base + timedelta(days=days))
+            for days in fibonacci_days
         ]
     )
 
@@ -167,22 +184,28 @@ def find_next_milestone(
 def notify(
     notifications: List[tuple[Person, Milestone]],
     next_item: tuple[Person, Milestone] | None = None,
+    today: date | None = None,
 ) -> None:
     """Skriver notifikationer til stdout for de mærkedage der er fundet.
 
     Hvis der ikke er nogen mærkedage i morgen, skrives i stedet den næste
-    kommende mærkedag med dato, beskrivelse og person (hvis angivet). Ellers
-    listes alle relevante mærkedage med navn, label og dato.
+    kommende mærkedag med dato, beskrivelse og person (hvis angivet). Hvis
+    dagens dato er givet, tilføjes også hvor mange dage der er til mærkedagen.
+    Ellers listes alle relevante mærkedage med navn, label og dato.
     """
     if not notifications:
         if next_item is None:
             print("Ingen kommende mærkedage fundet.")
             return
         person, milestone = next_item
+        if today is None:
+            today = date.today()
+        days_until = (milestone.date - today).days
         print(
             "Næste mærkedag: "
             f"{milestone.date.isoformat()} - {person.name}: {milestone.label}"
         )
+        print(f"Der er {days_until} dage til mærkedagen.")
         return
 
     print("Mærkedage i morgen:")
@@ -202,7 +225,7 @@ def main() -> None:
     people = load_birthdays(Path(args.birthdays))
     notifications = find_tomorrow_milestones(people, today)
     next_item = find_next_milestone(people, today)
-    notify(notifications, next_item)
+    notify(notifications, next_item, today)
 
 
 if __name__ == "__main__":
