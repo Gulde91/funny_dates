@@ -166,13 +166,13 @@ def find_next_milestone(
 
 def notify(
     notifications: List[tuple[Person, Milestone]],
-    next_item: tuple[Person, Milestone] | None,
+    next_item: tuple[Person, Milestone] | None = None,
 ) -> None:
     """Skriver notifikationer til stdout for de mærkedage der er fundet.
 
     Hvis der ikke er nogen mærkedage i morgen, skrives i stedet den næste
-    kommende mærkedag med dato, beskrivelse og person. Ellers listes alle
-    relevante mærkedage med navn, label og dato.
+    kommende mærkedag med dato, beskrivelse og person (hvis angivet). Ellers
+    listes alle relevante mærkedage med navn, label og dato.
     """
     if not notifications:
         if next_item is None:
