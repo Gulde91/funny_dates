@@ -101,15 +101,12 @@ def milestone_candidates(person: Person) -> Iterable[Milestone]:
     Resultatet er en liste af mærkedage med label og dato.
     """
     base = person.birthday
-    fibonacci_days = [34, 55, 89, 144, 233, 377, 610, 987]
     milestones = [
         ("100 måneder", add_months(base, 100)),
-        ("500 måneder", add_months(base, 500)),
-        ("1000 måneder", add_months(base, 1000)),
-        ("1200 måneder", add_months(base, 1200)),
         ("1000 uger", base + timedelta(weeks=1_000)),
         ("2000 uger", base + timedelta(weeks=2_000)),
-        ("10.000 dage", base + timedelta(days=10_000)),
+        ("1000 dage", base + timedelta(days=1_000)),
+        ("1111 dage", base + timedelta(days=1_111)),
     ]
 
     composite = add_years(base, 1)
@@ -121,23 +118,16 @@ def milestone_candidates(person: Person) -> Iterable[Milestone]:
     milestones.extend(
         [
             ("1.000.000 minutter", (birth_dt + timedelta(minutes=1_000_000)).date()),
-            (
-                "10.000.000 minutter",
-                (birth_dt + timedelta(minutes=10_000_000)).date(),
-            ),
+            ("10.000 timer", (birth_dt + timedelta(hours=10_000)).date()),
             ("100.000 timer", (birth_dt + timedelta(hours=100_000)).date()),
-            ("500.000 timer", (birth_dt + timedelta(hours=500_000)).date()),
+            (
+                "10.000.000 sekunder",
+                (birth_dt + timedelta(seconds=10_000_000)).date(),
+            ),
             (
                 "1.000.000.000 sekunder",
                 (birth_dt + timedelta(seconds=1_000_000_000)).date(),
             ),
-        ]
-    )
-
-    milestones.extend(
-        [
-            (f"Fibonacci: {days} dage", base + timedelta(days=days))
-            for days in fibonacci_days
         ]
     )
 
