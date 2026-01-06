@@ -102,6 +102,7 @@ def milestone_candidates(person: Person) -> Iterable[Milestone]:
     """
     base = person.birthday
     milestones = [
+        ("100 dage", base + timedelta(days=100)),
         ("100 måneder", add_months(base, 100)),
         ("1000 uger", base + timedelta(weeks=1_000)),
         ("2000 uger", base + timedelta(weeks=2_000)),

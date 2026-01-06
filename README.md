@@ -32,6 +32,7 @@ python3 funny_dates.py --birthdays birthdays.json --today 2024-12-31
 
 Scriptet beregner faste mærkedage ud fra fødselsdatoen:
 
+- 100 dage (~0,27 år)
 - 100 måneder (~8,33 år)
 - 1000 uger (~19,16 år) og 2000 uger (~38,33 år)
 - 1000 dage (~2,74 år)
