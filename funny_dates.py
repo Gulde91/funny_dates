@@ -153,55 +153,59 @@ def find_tomorrow_milestones(
     return notifications
 
 
-def find_next_milestone(
+def find_next_milestones_by_person(
     people: Iterable[Person], today: date
-) -> tuple[Person, Milestone] | None:
-    """Finder den næste kommende mærkedag efter den angivne dags dato.
+) -> List[tuple[Person, Milestone]]:
+    """Finder den næste kommende mærkedag for hver person.
 
-    Funktionen gennemgår alle mærkedage for alle personer og returnerer den
-    tidligste mærkedag der ligger efter i dag. Hvis ingen mærkedage findes i
-    fremtiden, returneres ``None``.
+    Funktionen gennemgår mærkedage for hver person og returnerer den tidligste
+    mærkedag der ligger efter den angivne dags dato. Resultatet er en liste med
+    én kommende mærkedag pr. person.
     """
-    next_item: tuple[Person, Milestone] | None = None
+    upcoming: List[tuple[Person, Milestone]] = []
     for person in people:
+        next_item: Milestone | None = None
         for milestone in milestone_candidates(person):
             if milestone.date <= today:
                 continue
-            if next_item is None or milestone.date < next_item[1].date:
-                next_item = (person, milestone)
-    return next_item
+            if next_item is None or milestone.date < next_item.date:
+                next_item = milestone
+        if next_item is not None:
+            upcoming.append((person, next_item))
+    return upcoming
 
 
 def notify(
     notifications: List[tuple[Person, Milestone]],
-    next_item: tuple[Person, Milestone] | None = None,
+    upcoming: List[tuple[Person, Milestone]],
     today: date | None = None,
 ) -> None:
     """Skriver notifikationer til stdout for de mærkedage der er fundet.
 
-    Hvis der ikke er nogen mærkedage i morgen, skrives i stedet den næste
-    kommende mærkedag med dato, beskrivelse og person (hvis angivet). Hvis
-    dagens dato er givet, tilføjes også hvor mange dage der er til mærkedagen.
-    Ellers listes alle relevante mærkedage med navn, label og dato.
+    Outputtet viser mærkedage i morgen (hvis nogen) og tilføjer altid en
+    oversigt over næste mærkedag for hver person. Hvis dagens dato er givet,
+    tilføjes også hvor mange dage der er til mærkedagen.
     """
     if not notifications:
-        if next_item is None:
-            print("Ingen kommende mærkedage fundet.")
-            return
-        person, milestone = next_item
-        if today is None:
-            today = date.today()
-        days_until = (milestone.date - today).days
-        print(
-            "Næste mærkedag: "
-            f"{milestone.date.isoformat()} - {person.name}: {milestone.label}"
-        )
-        print(f"Der er {days_until} dage til mærkedagen.")
+        print("Ingen mærkedage i morgen.")
+    else:
+        print("Mærkedage i morgen:")
+        for person, milestone in notifications:
+            print(f"- {person.name}: {milestone.label} ({milestone.date.isoformat()})")
+
+    if not upcoming:
+        print("Ingen kommende mærkedage fundet.")
         return
 
-    print("Mærkedage i morgen:")
-    for person, milestone in notifications:
-        print(f"- {person.name}: {milestone.label} ({milestone.date.isoformat()})")
+    if today is None:
+        today = date.today()
+    print("Næste mærkedag for alle:")
+    for person, milestone in upcoming:
+        days_until = (milestone.date - today).days
+        print(
+            f"- {person.name}: {milestone.label} ({milestone.date.isoformat()}) "
+            f"om {days_until} dage"
+        )
 
 
 def main() -> None:
@@ -215,8 +219,12 @@ def main() -> None:
     today = date.today() if not args.today else date.fromisoformat(args.today)
     people = load_birthdays(Path(args.birthdays))
     notifications = find_tomorrow_milestones(people, today)
-    next_item = find_next_milestone(people, today)
-    notify(notifications, next_item, today)
+    should_send = bool(notifications) or today.weekday() == 6
+    if not should_send:
+        print("Ingen mail udsendt i dag.")
+        return
+    upcoming = find_next_milestones_by_person(people, today)
+    notify(notifications, upcoming, today)
 
 
 if __name__ == "__main__":
