@@ -28,20 +28,6 @@ Du kan også pege på en anden fil eller teste med en bestemt dato:
 python3 funny_dates.py --birthdays birthdays.json --today 2024-12-31
 ```
 
-## Send mail (valgfrit hjælpescript)
-
-Hvis du vil sende mail via cron uden daglig tom mail, kan du bruge
-`send_mail.py`. Scriptet sender kun mail, når `funny_dates.py` faktisk
-producerer output.
-
-Sæt følgende miljøvariabler (typisk i din crontab):
-
-```bash
-FUNNY_DATES_SENDER="din.mail@gmail.com"
-FUNNY_DATES_RECIPIENT="modtager@mail.dk"
-FUNNY_DATES_APP_PASSWORD="app-kode"
-```
-
 ## Mærkedage der udregnes
 
 Scriptet beregner faste mærkedage ud fra fødselsdatoen:
