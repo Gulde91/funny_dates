@@ -221,7 +221,6 @@ def main() -> None:
     notifications = find_tomorrow_milestones(people, today)
     should_send = bool(notifications) or today.weekday() == 6
     if not should_send:
-        print("Ingen mail udsendt i dag.")
         return
     upcoming = find_next_milestones_by_person(people, today)
     notify(notifications, upcoming, today)
