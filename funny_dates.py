@@ -132,6 +132,19 @@ def milestone_candidates(person: Person) -> Iterable[Milestone]:
         ]
     )
 
+    # Ekstra "sjove" mærkedage i 30-40 års alderen.
+    milestones.extend(
+        [
+            ("30 år", add_years(base, 30)),
+            ("12.345 dage", base + timedelta(days=12_345)),
+            ("1.111.111.111 sekunder", (birth_dt + timedelta(seconds=1_111_111_111)).date()),
+            ("13.333 dage", base + timedelta(days=13_333)),
+            ("35 år", add_years(base, 35)),
+            ("14.444 dage", base + timedelta(days=14_444)),
+            ("40 år", add_years(base, 40)),
+        ]
+    )
+
     return [Milestone(label=label, date=moment) for label, moment in milestones]
 
 

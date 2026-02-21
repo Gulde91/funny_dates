@@ -41,6 +41,10 @@ Scriptet beregner faste mærkedage ud fra fødselsdatoen:
 - 1.000.000 minutter (~1,90 år)
 - 10.000 timer (~1,14 år) og 100.000 timer (~11,41 år)
 - 10.000.000 sekunder (~0,32 år) og 1.000.000.000 sekunder (~31,69 år)
+- Ekstra i 30-40 års alderen:
+  - 30 år, 35 år og 40 år
+  - 12.345 dage (~33,80 år), 13.333 dage (~36,52 år), 14.444 dage (~39,55 år)
+  - 1.111.111.111 sekunder (~35,23 år)
 
 ## Format på `birthdays.json`
 
