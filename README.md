@@ -42,13 +42,19 @@ Scriptet beregner faste mærkedage ud fra fødselsdatoen:
 - 10.000 timer (~1,14 år) og 100.000 timer (~11,41 år)
 - 10.000.000 sekunder (~0,32 år) og 1.000.000.000 sekunder (~31,69 år)
 
+Hvis `birth_time` er angivet, bliver minut/timer/sekund-mærkedage beregnet med
+præcist klokkeslæt. Hvis ikke, antages kl. `00:00` (og output viser kun dato).
+
 ## Format på `birthdays.json`
 
-Filen skal være en JSON-liste med objekter der indeholder `name` og `birthday` i formatet `YYYY-MM-DD`:
+Filen skal være en JSON-liste med objekter der indeholder `name` og `birthday`
+i formatet `YYYY-MM-DD`. Du kan også angive valgfri `birth_time` i formatet
+`HH:MM` (eller `H.MM`):
 
 ```json
 [
-  {"name": "Ada Lovelace", "birthday": "1815-12-10"}
+  {"name": "Ada Lovelace", "birthday": "1815-12-10"},
+  {"name": "Alan Turing", "birthday": "1912-06-23"}
 ]
 ```
 
