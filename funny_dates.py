@@ -6,7 +6,7 @@ import argparse
 import calendar
 import json
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Iterable, List
 
@@ -15,12 +15,14 @@ from typing import Iterable, List
 class Person:
     name: str
     birthday: date
+    birth_time: time | None = None
 
 
 @dataclass(frozen=True)
 class Milestone:
     label: str
     date: date
+    exact_time: datetime | None = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -45,6 +47,18 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def parse_birth_time(raw: str | None) -> time | None:
+    """Parserer valgfrit fødselstidspunkt i formaterne HH:MM eller HH.MM."""
+    if not raw:
+        return None
+
+    normalized = raw.strip().replace(".", ":")
+    if ":" in normalized:
+        hour, minute = normalized.split(":", maxsplit=1)
+        normalized = f"{hour.zfill(2)}:{minute.zfill(2)}"
+    return time.fromisoformat(normalized)
+
+
 def load_birthdays(path: Path) -> List[Person]:
     """Indlæser en JSON-fil med fødselsdage og returnerer en liste af personer.
 
@@ -62,7 +76,8 @@ def load_birthdays(path: Path) -> List[Person]:
     for entry in raw:
         name = entry["name"].strip()
         birthday = date.fromisoformat(entry["birthday"])
-        people.append(Person(name=name, birthday=birthday))
+        birth_time = parse_birth_time(entry.get("birth_time"))
+        people.append(Person(name=name, birthday=birthday, birth_time=birth_time))
     return people
 
 
@@ -115,24 +130,45 @@ def milestone_candidates(person: Person) -> Iterable[Milestone]:
     composite = composite + timedelta(weeks=1, days=1)
     milestones.append(("1 år, 1 måned, 1 uge, 1 dag", composite))
 
-    birth_dt = datetime.combine(base, datetime.min.time())
+    birth_dt = datetime.combine(base, person.birth_time or datetime.min.time())
+    million_minutes = birth_dt + timedelta(minutes=1_000_000)
+    ten_thousand_hours = birth_dt + timedelta(hours=10_000)
+    hundred_thousand_hours = birth_dt + timedelta(hours=100_000)
+    ten_million_seconds = birth_dt + timedelta(seconds=10_000_000)
+    one_billion_seconds = birth_dt + timedelta(seconds=1_000_000_000)
     milestones.extend(
         [
-            ("1.000.000 minutter", (birth_dt + timedelta(minutes=1_000_000)).date()),
-            ("10.000 timer", (birth_dt + timedelta(hours=10_000)).date()),
-            ("100.000 timer", (birth_dt + timedelta(hours=100_000)).date()),
-            (
-                "10.000.000 sekunder",
-                (birth_dt + timedelta(seconds=10_000_000)).date(),
-            ),
-            (
-                "1.000.000.000 sekunder",
-                (birth_dt + timedelta(seconds=1_000_000_000)).date(),
-            ),
+            ("1.000.000 minutter", million_minutes.date(), million_minutes),
+            ("10.000 timer", ten_thousand_hours.date(), ten_thousand_hours),
+            ("100.000 timer", hundred_thousand_hours.date(), hundred_thousand_hours),
+            ("10.000.000 sekunder", ten_million_seconds.date(), ten_million_seconds),
+            ("1.000.000.000 sekunder", one_billion_seconds.date(), one_billion_seconds),
         ]
     )
 
-    return [Milestone(label=label, date=moment) for label, moment in milestones]
+    normalized: List[Milestone] = []
+    for item in milestones:
+        if len(item) == 2:
+            label, moment = item
+            normalized.append(Milestone(label=label, date=moment))
+            continue
+
+        label, milestone_date, milestone_time = item
+        normalized.append(
+            Milestone(
+                label=label,
+                date=milestone_date,
+                exact_time=milestone_time if person.birth_time is not None else None,
+            )
+        )
+    return normalized
+
+
+def format_milestone_datetime(milestone: Milestone) -> str:
+    """Formatterer mærkedagstidspunkt til visning i output."""
+    if milestone.exact_time is None:
+        return milestone.date.isoformat()
+    return milestone.exact_time.strftime("%Y-%m-%d %H:%M")
 
 
 def find_tomorrow_milestones(
@@ -191,7 +227,9 @@ def notify(
     else:
         print("Mærkedage i morgen:")
         for person, milestone in notifications:
-            print(f"- {person.name}: {milestone.label} ({milestone.date.isoformat()})")
+            print(
+                f"- {person.name}: {milestone.label} ({format_milestone_datetime(milestone)})"
+            )
 
     if not upcoming:
         print("Ingen kommende mærkedage fundet.")
@@ -203,7 +241,7 @@ def notify(
     for person, milestone in upcoming:
         days_until = (milestone.date - today).days
         print(
-            f"- {person.name}: {milestone.label} ({milestone.date.isoformat()}) "
+            f"- {person.name}: {milestone.label} ({format_milestone_datetime(milestone)}) "
             f"om {days_until} dage"
         )
 
