@@ -125,10 +125,18 @@ def milestone_candidates(person: Person) -> Iterable[Milestone]:
         ("1111 dage", base + timedelta(days=1_111)),
     ]
 
-    composite = add_years(base, 1)
-    composite = add_months(composite, 1)
-    composite = composite + timedelta(weeks=1, days=1)
-    milestones.append(("1 år, 1 måned, 1 uge, 1 dag", composite))
+    for value in (1, 2, 3, 4):
+        composite = add_years(base, value)
+        composite = add_months(composite, value)
+        composite = composite + timedelta(weeks=value, days=value)
+        milestones.append(
+            (
+                f"{value} år, {value} måned{'er' if value != 1 else ''}, "
+                f"{value} uge{'r' if value != 1 else ''}, "
+                f"{value} dag{'e' if value != 1 else ''}",
+                composite,
+            )
+        )
 
     birth_dt = datetime.combine(base, person.birth_time or datetime.min.time())
     million_minutes = birth_dt + timedelta(minutes=1_000_000)
